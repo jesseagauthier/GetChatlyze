@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website with Live Chat</title>
+  <!-- Include Tailwind from CDN for styling -->
+   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- Example website content -->
+  <header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4">
+      <h1 class="text-3xl font-bold text-gray-900">Example Website</h1>
+    </div>
+  </header>
+  
+  <main class="max-w-7xl mx-auto py-6 px-4">
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Welcome to our website</h2>
+      <p class="text-gray-600">This is an example website with the live chat widget implemented.</p>
+      <p class="text-gray-600 mt-2">Click on the chat icon in the bottom right corner to test the live chat functionality.</p>
+    </div>
+  </main>
+  
+  <!-- Include the Live Chat Widget Script -->
+  <script src="./chatButton.js"></script>
+  
+  <!-- Optional: Configure the chat widget with custom settings -->
+  <script>
+    // This is optional - you can use it to customize the chat
+    configureLiveChat({
+      agentName: 'Customer Support',
+      welcomeMessage: 'Hello! How can we assist you today?'
+    });
+  </script>
+</body>
+</html>
