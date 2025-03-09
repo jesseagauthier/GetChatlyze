@@ -6,8 +6,24 @@ const DATABASE_ID = '67cc72d1003ac5065eea';
 const USERS_COLLECTION = 'users';
 const COMPANIES_COLLECTION = 'companies';
 
+// Helper function to add CORS headers to responses
+const addCorsHeaders = (res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Or specify your frontend origin like 'http://localhost:5173'
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-appwrite-key, x-appwrite-user-id');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+};
+
 // This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
+  // Add CORS headers to all responses
+  addCorsHeaders(res);
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.empty(204); // Return 204 No Content for OPTIONS requests
+  }
+  
   // You can use the Appwrite SDK to interact with other services
   // For this example, we're using the Users service
   const client = new Client()

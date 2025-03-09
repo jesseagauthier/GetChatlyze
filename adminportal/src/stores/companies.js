@@ -12,154 +12,48 @@ export const useCompaniesStore = defineStore('companies', () => {
   const createCompanyLoading = ref(false)
   const updateCompanyLoading = ref(false)
   const deleteCompanyLoading = ref(false)
-  const createCompanyViaFunctionLoading = ref(false)
-
-  // Getters as computed
-  const getCompanyById = (id) => {
-    return companies.value.find((company) => company.$id === id) || null
-  }
-
-  const activeCompanies = computed(() =>
-    companies.value.filter((company) => company.active === true),
-  )
-
-  const companiesByPlan = (plan) => companies.value.filter((company) => company.plan === plan)
-
-  // Actions as functions
-  async function fetchCompanies() {
-    loading.value = true
-    error.value = null
-
-    try {
-      const response = await appwrite.database.listDocuments(
-        import.meta.env.VITE_APPWRITE_DATABASE_ID,
-        import.meta.env.VITE_APPWRITE_COMPANIES_COLLECTION_ID,
-        [Query.limit(100)],
-      )
-
-      companies.value = response.documents
-      return companies.value
-    } catch (err) {
-      console.error('Error fetching companies:', err)
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function fetchCompany(companyId) {
-    singleCompanyLoading.value = true
-    error.value = null
-
-    try {
-      const company = await appwrite.database.getDocument(
-        import.meta.env.VITE_APPWRITE_DATABASE_ID,
-        import.meta.env.VITE_APPWRITE_COMPANIES_COLLECTION_ID,
-        companyId,
-      )
-
-      currentCompany.value = company
-      return company
-    } catch (err) {
-      console.error(`Error fetching company with ID ${companyId}:`, err)
-      error.value = err.message
-      throw err
-    } finally {
-      singleCompanyLoading.value = false
-    }
-  }
 
   async function createCompany(companyData) {
     createCompanyLoading.value = true
     error.value = null
 
     try {
-      // Generate API key if not provided
-      if (!companyData.apiKey) {
-        companyData.apiKey = ID.unique()
+      const response = await makeApiCall(companyData)
+      const result = await handleApiResponse(response)
+      if (result.success && result.company) {
+        return
+      } else {
+        throw new Error('Company creation was not successful')
       }
-
-      // Set default values if not provided
-      const newCompany = {
-        name: companyData.name,
-        domain: companyData.domain || null,
-        apiKey: companyData.apiKey,
-        clientSecret: companyData.clientSecret || null,
-        plan: companyData.plan || 'basic',
-        active: typeof companyData.active === 'boolean' ? companyData.active : true,
-        contactEmail: companyData.contactEmail || null,
-        contactName: companyData.contactName || null,
-        settings: companyData.settings || {},
-        maxAgents: companyData.maxAgents || 1,
-        customization: companyData.customization || {},
-        createdAt: new Date().toISOString(),
-        trialEndsAt: companyData.trialEndsAt || null,
-      }
-
-      const createdCompany = await appwrite.database.createDocument(
-        import.meta.env.VITE_APPWRITE_DATABASE_ID,
-        import.meta.env.VITE_APPWRITE_COMPANIES_COLLECTION_ID,
-        ID.unique(),
-        newCompany,
-      )
-
-      companies.value.push(createdCompany)
-      return createdCompany
     } catch (err) {
-      console.error('Error creating company:', err)
-      error.value = err.message
+      handleError(err)
       throw err
     } finally {
       createCompanyLoading.value = false
     }
   }
 
-  async function createCompanyViaFunction(companyData) {
-    createCompanyViaFunctionLoading.value = true
-    error.value = null
+  async function makeApiCall(companyData) {
+    return await fetch('https://67cc79c14ccc888c1ab7.appwrite.global/', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: companyData.name,
+        domain: companyData.domain || '',
+      }),
+    })
+  }
 
-    try {
-      // Get the current user's session token for authentication
-      const session = await appwrite.account.getSession('current')
-
-      // Prepare the headers with authentication
-      const headers = {
-        'Content-Type': 'application/json',
-        'X-Appwrite-Session': session.secret,
-      }
-
-      // Make the API call to the cloud function
-      const response = await fetch('http://67cc79c14ccc888c1ab7.appwrite.global/', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          name: companyData.name,
-          domain: companyData.domain || '',
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to create company via cloud function')
-      }
-
-      const result = await response.json()
-
-      if (result.success && result.company) {
-        // Add the newly created company to our local state
-        companies.value.push(result.company)
-        return result.company
-      } else {
-        throw new Error('Company creation was not successful')
-      }
-    } catch (err) {
-      console.error('Error creating company via cloud function:', err)
-      error.value = err.message
-      throw err
-    } finally {
-      createCompanyViaFunctionLoading.value = false
+  async function handleApiResponse(response) {
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Failed to create company via cloud function')
     }
+    return await response.json()
+  }
+
+  function handleError(err) {
+    console.error('Error creating company via cloud function:', err)
+    error.value = err.message
   }
 
   async function updateCompany(companyId, updatedData) {
@@ -232,14 +126,7 @@ export const useCompaniesStore = defineStore('companies', () => {
     createCompanyLoading,
     updateCompanyLoading,
     deleteCompanyLoading,
-    createCompanyViaFunctionLoading,
-    getCompanyById,
-    activeCompanies,
-    companiesByPlan,
-    fetchCompanies,
-    fetchCompany,
     createCompany,
-    createCompanyViaFunction,
     updateCompany,
     deleteCompany,
   }

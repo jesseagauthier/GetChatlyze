@@ -42,25 +42,16 @@ const company = reactive({
   domain: '',
 });
 
-// Use the loading state from the store
-const isSubmitting = computed(() => companiesStore.createCompanyViaFunctionLoading);
+const isSubmitting = computed(() => companiesStore.createCompanyLoading);
 
 const createCompany = async () => {
   try {
-    // Call the cloud function via the store
-    const createdCompany = await companiesStore.createCompanyViaFunction({
+    await companiesStore.createCompany({
       name: company.name,
       domain: company.domain
     });
-    // Redirect to companies list
-    router.push('/companies');
   } catch (error) {
     console.error('Error creating company:', error);
-
   }
-};
-
-const cancel = () => {
-  router.push('/companies');
 };
 </script>
