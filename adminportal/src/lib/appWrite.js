@@ -6,4 +6,12 @@ const client = new Client()
 
 const database = new Databases(client)
 
-export { ID, Query, client, database }
+// Create an appwrite object that can be imported directly
+const appwrite = {
+  client,
+  database,
+  ID,
+  Query,
+}
+
+export { ID, Query, client, database, appwrite }
