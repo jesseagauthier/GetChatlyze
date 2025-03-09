@@ -39,10 +39,18 @@ export default async ({ req, res, log, error }) => {
         log('Parsing request body');
         let event;
         try {
-            event = JSON.parse(req.body);
-            log('Request body parsed successfully');
+            // Check if req.body is already an object
+            if (typeof req.body === 'object' && req.body !== null) {
+                event = req.body;
+                log('Request body is already an object, no parsing needed');
+            } else {
+                event = JSON.parse(req.body);
+                log('Request body parsed successfully');
+            }
         } catch (parseErr) {
             error(`Failed to parse request body: ${parseErr.message}`);
+            error(`Request body type: ${typeof req.body}`);
+            error(`Request body content: ${String(req.body).substring(0, 200)}...`);
             throw new Error(`Invalid JSON in request body: ${parseErr.message}`);
         }
         
@@ -81,7 +89,11 @@ export default async ({ req, res, log, error }) => {
             createdAt: new Date().toISOString()
         };
         
-        log(`Document payload: ${JSON.stringify(userDoc)}`);
+        try {
+            log(`Document payload: ${JSON.stringify(userDoc)}`);
+        } catch (logErr) {
+            log(`Document payload: [Could not stringify payload: ${logErr.message}]`);
+        }
         
         const result = await databases.createDocument(
             databaseId,
@@ -100,7 +112,7 @@ export default async ({ req, res, log, error }) => {
             user: result
         });
     } catch (err) {
-        // Enhanced error logging
+        // Enhanced error logging - avoid JSON stringify issues
         error(`Error type: ${err.constructor.name}`);
         error(`Error message: ${err.message}`);
         error(`Error stack: ${err.stack}`);
@@ -119,12 +131,13 @@ export default async ({ req, res, log, error }) => {
             error('Document with this ID already exists - consider updating instead');
         }
         
-        // Return appropriate error response
+        // Return appropriate error response with safe error handling
         return res.json({
             success: false,
-            message: 'Failed to create user document',
-            error: err.message,
-            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+            message: `Failed to create user document: ${err.message}`,
+            errorType: err.constructor.name,
+            errorCode: err.code || null,
+            details: process.env.NODE_ENV === 'development' ? String(err.stack) : undefined
         }, 500);
     }
 };
