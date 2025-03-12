@@ -70,8 +70,9 @@ export default async ({ req, res, log, error }) => {
         log(`Creating document in database ${databaseId}, collection ${collectionId} with ID ${userId}`);
         const userDoc = {
             userId: userId,
-            Email: userEmail,
+            email: userEmail,
             name: userName,
+            lastActive: new Date().toISOString(),
             createdAt: new Date().toISOString()
         };
         
