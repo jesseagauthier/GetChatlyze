@@ -10,4 +10,7 @@
 
 ## NewUser Function Setup
 # Currently Working on a user creation cloud function that will trigger on new users.
-# The main function is created, working through troubleshooting with incoming data from appwrite
+# The main function is created, working through troubleshooting with incoming data from appwrite - Function is now created, moving on
+
+
+## Next I would like to implement a function that will fetch user data to ensure no unathorized access.
