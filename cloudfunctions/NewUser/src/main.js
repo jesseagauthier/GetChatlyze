@@ -1,4 +1,4 @@
-import { Client, Users, Databases, ID } from 'node-appwrite';
+import { Client, Users, Databases, ID, Permission, Role } from 'node-appwrite';
 
 // Main function handler
 export default async ({ req, res, log, error }) => {
@@ -86,7 +86,12 @@ export default async ({ req, res, log, error }) => {
             databaseId,
             collectionId,
             userId, // Use the user's ID as the document ID
-            userDoc
+            userDoc,
+            [
+                Permission.read(Role.user(userId)),    // Only this specific user can read the document
+                Permission.update(Role.user(userId)),  // Only this specific user can update the document
+                Permission.delete(Role.user(userId))   // Only this specific user can delete the document
+            ]
         );
         
         log(`Document created successfully with ID: ${result.$id}`);
