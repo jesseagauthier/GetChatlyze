@@ -1,5 +1,9 @@
 import { Client, Databases, Query  } from 'node-appwrite';
 
+
+// Currently This function only fetches user Data - It needs to be updated to both modify and delete user data
+
+
 // Main function handler
 export default async ({ req, res, log, error }) => {
     const databaseId = '67cc72d1003ac5065eea';
