@@ -8,20 +8,6 @@ export default async ({ req, res, log, error }) => {
     log('Function triggered - starting execution');
     
     try {
-        // Log environment check
-        log('Checking environment variables');
-        if (!process.env.APPWRITE_FUNCTION_ENDPOINT) {
-            throw new Error('Missing APPWRITE_FUNCTION_ENDPOINT environment variable');
-        }
-        if (!process.env.APPWRITE_FUNCTION_PROJECT_ID) {
-            throw new Error('Missing APPWRITE_FUNCTION_PROJECT_ID environment variable');
-        }
-        if (!process.env.APPWRITE_API_KEY) {
-            throw new Error('Missing APPWRITE_API_KEY environment variable');
-        }
-        
-        log('Environment variables verified');
-        
         // Initialize the Appwrite client
         log('Initializing Appwrite client');
         const client = new Client()
