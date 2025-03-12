@@ -110,7 +110,7 @@ export default async ({ req, res, log, error }) => {
             log('Document created with default permissions only');
             // Continue execution - the document was created with default permissions
         }
-        );
+        
         
         log(`Document created successfully with ID: ${result.$id}`);
         
