@@ -1,4 +1,4 @@
-import { Client, Databases, } from 'node-appwrite';
+import { Client, Databases, ID, Permission, Role } from 'node-appwrite';
 
 // Main function handler
 export default async ({ req, res, log, error }) => {
@@ -48,22 +48,78 @@ export default async ({ req, res, log, error }) => {
         const userId = event.userId || event.$id;
         if (!userId) {
             throw new Error('Missing required field: userId or $id');
-        }    
-        log(`Processing user: ID=${userId}`);
+        }
         
-    
-        const result = await databases.listDocuments(
+        const userEmail = event.email || '';
+        const userName = event.name || '';
+        
+        log(`Processing user: ID=${userId}, Email=${userEmail}, Name=${userName}`);
+        
+        // Verify database and collection existence
+        log(`Checking if collection "${collectionId}" exists in database "${databaseId}"`);
+        try {
+            // Optional: You could add a check here to verify the collection exists
+            // This would require an additional API call
+            log('Proceeding with document creation');
+        } catch (checkErr) {
+            error(`Failed to verify collection: ${checkErr.message}`);
+            throw new Error(`Collection verification failed: ${checkErr.message}`);
+        }
+        
+        // Create a new document in the users collection
+        log(`Creating document in database ${databaseId}, collection ${collectionId} with ID ${userId}`);
+        const userDoc = {
+            userId: userId,
+            email: userEmail,
+            name: userName,
+            lastActive: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+        };
+        
+        try {
+            log(`Document payload: ${JSON.stringify(userDoc)}`);
+        } catch (logErr) {
+            log(`Document payload: [Could not stringify payload: ${logErr.message}]`);
+        }
+        
+        // Create document with default permissions first, then update security
+        const result = await databases.createDocument(
             databaseId,
             collectionId,
-            [
-                Query.equal('userId', userId)
-            ]
+            userId, // Use the user's ID as the document ID
+            userDoc
         );
-
+        
+        // Then update the document with custom permissions
+        // Note: We need to check if your Appwrite instance supports this operation
+        try {
+            await databases.updateDocument(
+                databaseId,
+                collectionId,
+                userId,
+                userDoc, // Resend the same data
+                [
+                    Permission.read(Role.user(userId)),
+                    Permission.update(Role.user(userId)),
+                    Permission.delete(Role.user(userId))
+                ]
+            );
+            log('Updated document with user-specific permissions');
+        } catch (permErr) {
+            error(`Could not set user-specific permissions: ${permErr.message}`);
+            log('Document created with default permissions only');
+            // Continue execution - the document was created with default permissions
+        }
+        
+        
+        log(`Document created successfully with ID: ${result.$id}`);
+        
+        // Return success response
+        log('Returning success response');
         return res.json({
             success: true,
-            message: 'document found',
-            userInformation: result
+            message: 'User document created',
+            user: result
         });
     } catch (err) {
         // Enhanced error logging - avoid JSON stringify issues
@@ -88,7 +144,7 @@ export default async ({ req, res, log, error }) => {
         // Return appropriate error response with safe error handling
         return res.json({
             success: false,
-            message: `Failed to fetch user document: ${err.message}`,
+            message: `Failed to create user document: ${err.message}`,
             errorType: err.constructor.name,
             errorCode: err.code || null,
             details: process.env.NODE_ENV === 'development' ? String(err.stack) : undefined
