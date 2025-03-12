@@ -25,7 +25,7 @@ export default async ({ req, res, log, error }) => {
         // Initialize the Appwrite client
         log('Initializing Appwrite client');
         const client = new Client()
-            .setEndpoint(process.env.APPWRITE_FUNCTION_ENDPOINT)
+            .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
             .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
             .setKey(process.env.APPWRITE_API_KEY);
         

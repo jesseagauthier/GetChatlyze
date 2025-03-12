@@ -3,8 +3,9 @@
 # database structure completed
 
 # cloud functions enabled to serve the script CDN tag
-
-# cloud function enabled to create new companies - will need to be updated to delete/modify companies, and further polishing.
+# cloud function enabled to create new companies 
+# -
+## will need to be updated to delete/modify companies, and further polishing.
 
 
 ## NewUser Function Setup
