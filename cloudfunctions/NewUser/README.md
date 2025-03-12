@@ -1,48 +1,62 @@
-# ⚡ Node.js Starter Function
+# NewUser Cloud Function
 
-A simple starter function. Edit `src/main.js` to get started and create something awesome! 🚀
+## Purpose
+This cloud function automatically creates a user document in an Appwrite database when a new user is registered. It captures essential user information and stores it in a designated collection for user management.
 
-## 🧰 Usage
+## Functionality
+- Triggered when a new user is created
+- Extracts user information (ID, email, name) from the request
+- Creates a document in the "users" collection using the user's ID
+- Stores user details and creation timestamp
+- Returns success or error information
 
-### GET /ping
+## Requirements
+- Appwrite instance
+- Configured database (ID: '67cc72d1003ac5065eea')
+- "users" collection in the database
 
-- Returns a "Pong" message.
+## Environment Variables
+The function requires the following environment variables:
+- `APPWRITE_FUNCTION_ENDPOINT`: The URL of your Appwrite instance
+- `APPWRITE_FUNCTION_PROJECT_ID`: Your Appwrite project ID
+- `APPWRITE_API_KEY`: API key with permissions to access/modify databases
 
-**Response**
-
-Sample `200` Response:
-
-```text
-Pong
-```
-
-### GET, POST, PUT, PATCH, DELETE /
-
-- Returns a "Learn More" JSON response.
-
-**Response**
-
-Sample `200` Response:
-
+## Request Format
+The function expects a JSON payload with:
 ```json
 {
-  "motto": "Build like a team of hundreds_",
-  "learn": "https://appwrite.io/docs",
-  "connect": "https://appwrite.io/discord",
-  "getInspired": "https://builtwith.appwrite.io"
+  "userId": "unique-user-id",  // or "$id"
+  "email": "user@example.com", // optional
+  "name": "User Name"          // optional
 }
 ```
 
-## ⚙️ Configuration
+## Response
+### Success
+```json
+{
+  "success": true,
+  "message": "User document created",
+  "user": { /* user document data */ }
+}
+```
 
-| Setting           | Value         |
-| ----------------- | ------------- |
-| Runtime           | Node (18.0)   |
-| Entrypoint        | `src/main.js` |
-| Build Commands    | `npm install` |
-| Permissions       | `any`         |
-| Timeout (Seconds) | 15            |
+### Error
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "errorType": "Error type",
+  "errorCode": "Error code if available"
+}
+```
 
-## 🔒 Environment Variables
+## Error Handling
+The function includes comprehensive error handling for common issues:
+- Missing environment variables
+- Invalid request format
+- Permission issues
+- Database access problems
 
-No environment variables required.
+## Deployment
+Deploy this function to your Appwrite instance and configure it to be triggered by authentication events or manual API calls.
