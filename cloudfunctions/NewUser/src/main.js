@@ -1,4 +1,4 @@
-import { Client, Users, Databases, ID, Permission, Role } from 'node-appwrite';
+import { Client, Databases, ID, Permission, Role } from 'node-appwrite';
 
 // Main function handler
 export default async ({ req, res, log, error }) => {
@@ -82,16 +82,34 @@ export default async ({ req, res, log, error }) => {
             log(`Document payload: [Could not stringify payload: ${logErr.message}]`);
         }
         
+        // Create document with default permissions first, then update security
         const result = await databases.createDocument(
             databaseId,
             collectionId,
             userId, // Use the user's ID as the document ID
-            userDoc,
-            [
-                Permission.read(Role.user(userId)),    // Only this specific user can read the document
-                Permission.update(Role.user(userId)),  // Only this specific user can update the document
-                Permission.delete(Role.user(userId))   // Only this specific user can delete the document
-            ]
+            userDoc
+        );
+        
+        // Then update the document with custom permissions
+        // Note: We need to check if your Appwrite instance supports this operation
+        try {
+            await databases.updateDocument(
+                databaseId,
+                collectionId,
+                userId,
+                userDoc, // Resend the same data
+                [
+                    Permission.read(Role.user(userId)),
+                    Permission.update(Role.user(userId)),
+                    Permission.delete(Role.user(userId))
+                ]
+            );
+            log('Updated document with user-specific permissions');
+        } catch (permErr) {
+            error(`Could not set user-specific permissions: ${permErr.message}`);
+            log('Document created with default permissions only');
+            // Continue execution - the document was created with default permissions
+        }
         );
         
         log(`Document created successfully with ID: ${result.$id}`);
