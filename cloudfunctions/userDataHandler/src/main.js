@@ -1,4 +1,4 @@
-import { Client, Databases, } from 'node-appwrite';
+import { Client, Databases, Query  } from 'node-appwrite';
 
 // Main function handler
 export default async ({ req, res, log, error }) => {
