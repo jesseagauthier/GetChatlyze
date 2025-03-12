@@ -71,7 +71,7 @@ export default async ({ req, res, log, error }) => {
         const userDoc = {
             userId: userId,
             Email: userEmail,
-            Name: userName,
+            name: userName,
             createdAt: new Date().toISOString()
         };
         
