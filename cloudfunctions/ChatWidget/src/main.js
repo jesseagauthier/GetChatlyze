@@ -548,7 +548,53 @@ window.chatConfig = {
         timestamp: new Date().toISOString()
       };
       
-      // Create a new chat session
+      // Check for existing active chats for this user to prevent duplicates on refresh
+      try {
+        // Query for existing chats for this user and company that are not ended
+        const existingChats = await database.listDocuments(
+          window.chatConfig.appwriteDatabaseId,
+          window.chatConfig.appwriteChatsCollectionId,
+          [
+            // Filter by companyId and userId
+            window.Appwrite.Query.equal('companyId', window.chatConfig.companyId),
+            window.Appwrite.Query.equal('createdBy', window.chatConfig.userId),
+            // Only get chats that are waiting or active (not ended)
+            window.Appwrite.Query.notEqual('status', 'ended'),
+            // Sort by creation date descending to get the most recent
+            window.Appwrite.Query.orderDesc('createdAt')
+          ]
+        );
+        
+        // If we found an existing chat, use it instead of creating a new one
+        if (existingChats.documents.length > 0) {
+          const existingChat = existingChats.documents[0];
+          chatId = existingChat.$id;
+          
+          // Set connected status based on chat status
+          if (existingChat.status === 'active') {
+            connected = true;
+            updateConnectionStatus(\`Connected with \${existingChat.agentName || window.chatConfig.agentName}\`, "green");
+          } else {
+            updateConnectionStatus("Waiting for an agent...", "yellow");
+          }
+          
+          // Add system message indicating reconnection
+          addSystemMessage("Reconnected to existing chat session.");
+          
+          // Subscribe to realtime updates for the existing chat
+          subscribeToRealtimeUpdates();
+          
+          // Load previous messages
+          await loadChatHistory(chatId);
+          
+          return; // Exit function as we're using an existing chat
+        }
+      } catch (error) {
+        console.error("Error checking for existing chats:", error);
+        // Continue to create a new chat if there was an error checking
+      }
+      
+      // Create a new chat session (only reached if no existing chat was found)
       const chatData = {
         companyId: window.chatConfig.companyId,
         name: \`Chat with \${window.chatConfig.userId}\`,
@@ -596,6 +642,39 @@ window.chatConfig = {
     } catch (error) {
       console.error("Error creating chat:", error);
       updateConnectionStatus("Connection failed: " + error.message, "red");
+    }
+  }
+  
+  // Function to load previous messages for an existing chat
+  async function loadChatHistory(chatId) {
+    try {
+      const messages = await database.listDocuments(
+        window.chatConfig.appwriteDatabaseId,
+        window.chatConfig.appwriteMessagesCollectionId,
+        [
+          window.Appwrite.Query.equal('chatId', chatId),
+          window.Appwrite.Query.orderAsc('createdAt')
+        ]
+      );
+      
+      // Clear existing messages except the welcome message
+      const chatMessages = document.getElementById("chat-messages");
+      const welcomeMessage = chatMessages.firstChild;
+      chatMessages.innerHTML = '';
+      
+      if (welcomeMessage) {
+        chatMessages.appendChild(welcomeMessage);
+      }
+      
+      // Add each historical message to the UI
+      messages.documents.forEach(message => {
+        const sender = message.senderId === window.chatConfig.userId ? "user" : "agent";
+        addMessage(message.content, sender);
+      });
+      
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+      addSystemMessage("Failed to load previous messages.");
     }
   }
   
