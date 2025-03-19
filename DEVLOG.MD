@@ -13,9 +13,6 @@
 # The main function is created, working through troubleshooting with incoming data from appwrite - Function is now created, moving on
 
 
-###### WE'RE HERE
+## Next I would like to implement a function that will fetch user data to ensure no unathorized access. - DONE
 
-
-## Next I would like to implement a function that will fetch user data to ensure no unathorized access.
-
-## -Currently This function only fetches user Data - It needs to be updated to both modify and delete user data
+##

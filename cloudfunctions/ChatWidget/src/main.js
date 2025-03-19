@@ -36,7 +36,7 @@ export default async ({ req, res, log, error }) => {
       const company = await databases.getDocument(
         process.env.APPWRITE_DATABASE_ID,
         'companies',
-        companyCode
+        Query.select(["scriptCode", companyCode])
       );
       
       log(`Company found: ${company.name}`);
