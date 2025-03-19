@@ -485,18 +485,23 @@ window.chatConfig = {
   
   function initializeAppwrite() {
     try {
-      // Initialize Appwrite client
-      appwrite = new Appwrite();
+      // Check if Appwrite SDK is properly loaded
+      if (typeof window.Appwrite === 'undefined') {
+        throw new Error("Appwrite SDK not loaded properly");
+      }
+      
+      // Initialize Appwrite client using the correct browser SDK structure
+      appwrite = new window.Appwrite.Client();
       
       // Set endpoint and project
       appwrite.setEndpoint(window.chatConfig.appwriteEndpoint);
       appwrite.setProject(window.chatConfig.appwriteProjectId);
       
       // Initialize Appwrite database service
-      database = appwrite.databases;
+      database = new window.Appwrite.Databases(appwrite);
       
-      // Initialize Appwrite realtime service
-      realtime = appwrite.realtime;
+      // Initialize Appwrite realtime
+      realtime = appwrite.subscribe;
       
       updateConnectionStatus("Connecting to support...", "yellow");
       
@@ -504,7 +509,7 @@ window.chatConfig = {
       createOrConnectChat();
     } catch (error) {
       console.error("Failed to initialize Appwrite:", error);
-      updateConnectionStatus("Connection failed", "red");
+      updateConnectionStatus("Connection failed: " + error.message, "red");
     }
   }
   
@@ -567,7 +572,7 @@ window.chatConfig = {
       
     } catch (error) {
       console.error("Error creating chat:", error);
-      updateConnectionStatus("Connection failed", "red");
+      updateConnectionStatus("Connection failed: " + error.message, "red");
     }
   }
   
@@ -583,18 +588,23 @@ window.chatConfig = {
     // Messages channel - for new messages in this chat
     const messagesChannel = \`databases.\${window.chatConfig.appwriteDatabaseId}.collections.\${window.chatConfig.appwriteMessagesCollectionId}.documents\`;
     
-    // Subscribe to both channels
-    realtimeUnsubscribe = realtime.subscribe([chatChannel, messagesChannel], response => {
-      // Handle chat updates
-      if (response.events.includes(\`databases.\${window.chatConfig.appwriteDatabaseId}.collections.\${window.chatConfig.appwriteChatsCollectionId}.documents.\${chatId}.update\`)) {
-        handleChatUpdate(response.payload);
-      }
-      
-      // Handle new messages
-      if (response.events.includes(\`databases.\${window.chatConfig.appwriteDatabaseId}.collections.\${window.chatConfig.appwriteMessagesCollectionId}.documents.create\`)) {
-        handleNewMessage(response.payload);
-      }
-    });
+    // Subscribe to both channels using the correct Appwrite realtime API
+    try {
+      realtimeUnsubscribe = appwrite.subscribe([chatChannel, messagesChannel], response => {
+        // Handle chat updates
+        if (response.events.includes(\`databases.\${window.chatConfig.appwriteDatabaseId}.collections.\${window.chatConfig.appwriteChatsCollectionId}.documents.\${chatId}.update\`)) {
+          handleChatUpdate(response.payload);
+        }
+        
+        // Handle new messages
+        if (response.events.includes(\`databases.\${window.chatConfig.appwriteDatabaseId}.collections.\${window.chatConfig.appwriteMessagesCollectionId}.documents.create\`)) {
+          handleNewMessage(response.payload);
+        }
+      });
+    } catch (error) {
+      console.error("Failed to subscribe to realtime updates:", error);
+      updateConnectionStatus("Failed to subscribe to updates", "red");
+    }
   }
   
   function handleChatUpdate(chatData) {
