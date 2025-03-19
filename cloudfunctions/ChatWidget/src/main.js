@@ -33,11 +33,14 @@ export default async ({ req, res, log, error }) => {
     
     // Look up the company by ID to verify it exists and get configuration
     try {
-      const company = await databases.getDocument(
+      const companies = await databases.listDocuments(
         process.env.APPWRITE_DATABASE_ID,
         'companies',
-        Query.select(["scriptCode", companyCode])
+        [Query.equal('scriptCode', companyCode)]
       );
+
+// Then get the first match
+const company = companies.documents[0];
       
       log(`Company found: ${company.name}`);
       
