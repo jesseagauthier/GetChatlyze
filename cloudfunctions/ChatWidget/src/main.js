@@ -95,6 +95,19 @@ export default async ({ req, res, log, error }) => {
 };
 
 // Function to generate the chat widget script with embedded configuration
+// Structure of the injected script:
+// 1. Configuration - Sets up window.chatConfig with company-specific settings, endpoints, collections and user info
+// 2. Dependencies - Loads the Appwrite SDK and injects necessary CSS styles
+// 3. Chat Widget UI - Creates and renders the HTML structure for the widget (button, window, messages area)
+// 4. Event Handlers - Sets up click handlers, input listeners, and typing indicators
+// 5. Appwrite Integration - Initializes connection to Appwrite backend services
+// 6. Chat Session Management - Creates new chat rooms or connects to existing ones
+// 7. Realtime Subscriptions - Sets up listeners for message and status updates
+// 8. Message Handling - Processes incoming messages and sends user messages to Appwrite
+// 9. UI State Management - Updates interface based on connection status, new messages, typing status
+
+
+
 function generateChatScript(companyId, settings, customization, hostname) {
   // Determine the Appwrite endpoint based on the function host
   const endpoint = process.env.APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
@@ -115,7 +128,17 @@ window.chatConfig = {
   agentName: "${(settings && settings.agentTitle) || 'Support Agent'}",
   welcomeMessage: "${(settings && settings.welcomeMessage) || 'Hi there! How can we help you today?'}",
   offlineMessage: "${(settings && settings.offlineMessage) || 'We are currently offline. Please leave a message and we will get back to you.'}",
-  userId: "visitor_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9),
+  userId: (function() {
+    const storageKey = "chatlyze_visitor_id_${companyId}";
+    let userId = localStorage.getItem(storageKey);
+    
+    if (!userId) {
+      userId = "visitor_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem(storageKey, userId);
+    }
+    
+    return userId;
+  })(),
   theme: {
     primary: "${(customization && customization.primary) || '#4F46E5'}",
     secondary: "${(customization && customization.secondary) || '#E5E7EB'}",
