@@ -69,11 +69,11 @@ const company = companies.documents[0];
         req.hostname
       );
       
-      // Send script with proper content-type header
-      return res
-        .setHeader('Content-Type', 'application/javascript')
-        .setHeader('Cache-Control', 'max-age=3600') // Cache for 1 hour
-        .send(chatScript);
+      // Send script with proper content-type header (fixed to use Appwrite response format)
+      return res.send(chatScript, 200, {
+        'Content-Type': 'application/javascript',
+        'Cache-Control': 'max-age=3600' // Cache for 1 hour
+      });
       
     } catch (err) {
       error(`Error looking up company: ${err.message}`);
