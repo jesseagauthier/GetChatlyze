@@ -101,27 +101,26 @@ function generateChatScript(companyId, settings, customization, hostname) {
   const projectId = process.env.APPWRITE_FUNCTION_PROJECT_ID;
   const databaseId = process.env.APPWRITE_DATABASE_ID;
 
-  // Start with inline configuration - this avoids having to do another request
-  let script = `
+let script = `
 // Live Chat Widget with Appwrite Realtime
 // Configuration
 window.chatConfig = {
-  companyId: "${companyId}",
-  appwriteEndpoint: "${endpoint}",
-  appwriteProjectId: "${projectId}",
-  appwriteDatabaseId: "${databaseId}",
+  companyId: "${companyId || ''}",
+  appwriteEndpoint: "${endpoint || 'https://cloud.appwrite.io/v1'}",
+  appwriteProjectId: "${projectId || ''}",
+  appwriteDatabaseId: "${databaseId || ''}",
   appwriteChatsCollectionId: "chatRooms",
   appwriteMessagesCollectionId: "chatMessages",
   appwriteQueueCollectionId: "chatQueue",
-  agentName: "${settings.agentTitle || 'Support Agent'}",
-  welcomeMessage: "${settings.welcomeMessage || 'Hi there! How can we help you today?'}",
-  offlineMessage: "${settings.offlineMessage || 'We are currently offline. Please leave a message and we will get back to you.'}",
+  agentName: "${(settings && settings.agentTitle) || 'Support Agent'}",
+  welcomeMessage: "${(settings && settings.welcomeMessage) || 'Hi there! How can we help you today?'}",
+  offlineMessage: "${(settings && settings.offlineMessage) || 'We are currently offline. Please leave a message and we will get back to you.'}",
   userId: "visitor_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9),
   theme: {
-    primary: "${customization.primary || '#4F46E5'}",
-    secondary: "${customization.secondary || '#E5E7EB'}",
-    text: "${customization.text || '#111827'}",
-    textLight: "${customization.textLight || '#F9FAFB'}"
+    primary: "${(customization && customization.primary) || '#4F46E5'}",
+    secondary: "${(customization && customization.secondary) || '#E5E7EB'}",
+    text: "${(customization && customization.text) || '#111827'}",
+    textLight: "${(customization && customization.textLight) || '#F9FAFB'}"
   }
 };
   `;
