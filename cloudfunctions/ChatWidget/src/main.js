@@ -39,8 +39,8 @@ export default async ({ req, res, log, error }) => {
         [Query.equal('scriptCode', companyCode)]
       );
 
-// Then get the first match
-const company = companies.documents[0];
+      // Then get the first match
+      const company = companies.documents[0];
       
       log(`Company found: ${company.name}`);
       
@@ -69,7 +69,7 @@ const company = companies.documents[0];
         req.hostname
       );
       
-      // Send script with proper content-type header (fixed to use Appwrite response format)
+      // Send script with proper content-type header
       return res.send(chatScript, 200, {
         'Content-Type': 'application/javascript',
         'Cache-Control': 'max-age=3600' // Cache for 1 hour
